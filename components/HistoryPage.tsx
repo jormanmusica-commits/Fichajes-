@@ -5,6 +5,17 @@ import HistoryList from './HistoryList';
 // --- HELPER FUNCTIONS ---
 
 /**
+ * Gets a YYYY-MM-DD string from a Date object in the local timezone.
+ */
+const getLocalDateString = (d: Date): string => {
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+
+/**
  * Gets the Monday of the week for a given date.
  * @param d The date.
  * @returns A new Date object set to the beginning of that Monday.
@@ -38,19 +49,20 @@ const calculateNightDuration = (session: WorkSession): { duration: number; dates
     const sessionStart = session.startTime.getTime();
     const sessionEnd = session.endTime.getTime();
 
-    const cursor = new Date(session.startTime);
-    cursor.setHours(0, 0, 0, 0);
+    const loopStartDate = new Date(session.startTime);
+    loopStartDate.setHours(0, 0, 0, 0);
 
-    while (cursor.getTime() < sessionEnd) {
-        const dayStart = cursor.getTime();
-        
+    for (let dayTime = loopStartDate.getTime(); dayTime < sessionEnd; dayTime += 24 * 60 * 60 * 1000) {
+        const currentDay = new Date(dayTime);
+        const dayStart = currentDay.getTime();
+
         // Night period 1: 00:00 to 06:00
         const nightStart1 = dayStart;
         const nightEnd1 = dayStart + 6 * 60 * 60 * 1000;
         const overlap1 = calculateIntervalOverlap(sessionStart, sessionEnd, nightStart1, nightEnd1);
         if (overlap1 > 0) {
             totalNightMs += overlap1;
-            nightDates.add(cursor.toISOString().split('T')[0]);
+            nightDates.add(getLocalDateString(currentDay));
         }
 
         // Night period 2: 22:00 to 24:00
@@ -59,12 +71,10 @@ const calculateNightDuration = (session: WorkSession): { duration: number; dates
         const overlap2 = calculateIntervalOverlap(sessionStart, sessionEnd, nightStart2, nightEnd2);
         if (overlap2 > 0) {
             totalNightMs += overlap2;
-            nightDates.add(cursor.toISOString().split('T')[0]);
+            nightDates.add(getLocalDateString(currentDay));
         }
-
-        cursor.setDate(cursor.getDate() + 1);
     }
-    // Use T00:00:00 to avoid timezone issues on conversion
+
     const dates = Array.from(nightDates).map(dateStr => new Date(`${dateStr}T00:00:00`));
     return { duration: totalNightMs, dates };
 };
@@ -79,20 +89,20 @@ const calculateHolidayDuration = (session: WorkSession): { duration: number; dat
     const sessionStart = session.startTime.getTime();
     const sessionEnd = session.endTime.getTime();
 
-    const cursor = new Date(session.startTime);
-    cursor.setHours(0, 0, 0, 0);
+    const loopStartDate = new Date(session.startTime);
+    loopStartDate.setHours(0, 0, 0, 0);
 
-    while (cursor.getTime() < sessionEnd) {
-        if (cursor.getDay() === 0) { // Sunday
-            const dayStart = cursor.getTime();
+    for (let dayTime = loopStartDate.getTime(); dayTime < sessionEnd; dayTime += 24 * 60 * 60 * 1000) {
+        const currentDay = new Date(dayTime);
+        if (currentDay.getDay() === 0) { // Sunday
+            const dayStart = currentDay.getTime();
             const dayEnd = dayStart + 24 * 60 * 60 * 1000;
             const overlap = calculateIntervalOverlap(sessionStart, sessionEnd, dayStart, dayEnd);
             if (overlap > 0) {
                 totalHolidayMs += overlap;
-                holidayDates.add(cursor.toISOString().split('T')[0]);
+                holidayDates.add(getLocalDateString(currentDay));
             }
         }
-        cursor.setDate(cursor.getDate() + 1);
     }
     const dates = Array.from(holidayDates).map(dateStr => new Date(`${dateStr}T00:00:00`));
     return { duration: totalHolidayMs, dates };
@@ -368,11 +378,11 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                     
                     const nightInfo = calculateNightDuration(s);
                     nightDuration += nightInfo.duration;
-                    nightInfo.dates.forEach(d => nocturnalDates.add(d.toISOString().split('T')[0]));
+                    nightInfo.dates.forEach(d => nocturnalDates.add(getLocalDateString(d)));
 
                     const holidayInfo = calculateHolidayDuration(s);
                     holidayDuration += holidayInfo.duration;
-                    holidayInfo.dates.forEach(d => holidayDates.add(d.toISOString().split('T')[0]));
+                    holidayInfo.dates.forEach(d => holidayDates.add(getLocalDateString(d)));
                 });
                 
                 return {
