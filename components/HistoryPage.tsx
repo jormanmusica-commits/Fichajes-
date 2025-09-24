@@ -240,52 +240,55 @@ const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelet
                     <ChevronDownIcon className={`w-6 h-6 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                 </div>
              </div>
-
-             <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-[2000px]' : 'max-h-0'}`}>
-                <div className="px-4 pb-4 pt-2 border-t border-slate-700/50">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 my-4">
-                        <StatCard title="TOTAL BRUTO" value={formatHoursMinutes(week.totalDuration)} icon={<span className="text-purple-400 text-lg font-bold">Σ</span>} />
-                        
-                        <StatCard 
-                            title="TOTAL REAL"
-                            subTitle="(-30 min/día)"
-                            value={formatHoursMinutes(week.totalDurationWithBreaks)} 
-                            icon={<span className="text-green-400 text-lg font-bold">✓</span>}
-                        />
-
-                        <StatCard 
-                            title="NOCTURNAS" 
-                            value={formatHoursMinutes(week.nightDuration)} 
-                            icon={<span className="text-blue-400">🌙</span>}
-                            isExpandable={hasNocturnalHours}
-                            isDetailsVisible={detailsVisible === 'nocturnal'}
-                            onClick={hasNocturnalHours ? () => setDetailsVisible(prev => prev === 'nocturnal' ? 'none' : 'nocturnal') : undefined}
-                        >
-                            {hasNocturnalHours && (
-                                <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
-                                    <DateList dates={week.nocturnalDates} />
-                                </div>
-                            )}
-                        </StatCard>
-
-                        <StatCard 
-                            title="FESTIVAS" 
-                            value={formatHoursMinutes(week.holidayDuration)} 
-                            icon={<span className="text-yellow-400">☀️</span>}
-                            isExpandable={hasHolidayHours}
-                            isDetailsVisible={detailsVisible === 'holiday'}
-                            onClick={hasHolidayHours ? () => setDetailsVisible(prev => prev === 'holiday' ? 'none' : 'holiday') : undefined}
-                        >
-                            {hasHolidayHours && (
-                                <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
-                                    <DateList dates={week.holidayDates} />
-                                </div>
-                            )}
-                        </StatCard>
-                    </div>
+             
+             {/* Always visible stats section */}
+             <div className="px-4 pb-2 pt-2 border-t border-slate-700/50">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 my-4">
+                    <StatCard title="TOTAL BRUTO" value={formatHoursMinutes(week.totalDuration)} icon={<span className="text-purple-400 text-lg font-bold">Σ</span>} />
                     
-                    <hr className="border-slate-700/50 my-4"/>
+                    <StatCard 
+                        title="TOTAL REAL"
+                        subTitle="(-30 min/día)"
+                        value={formatHoursMinutes(week.totalDurationWithBreaks)} 
+                        icon={<span className="text-green-400 text-lg font-bold">✓</span>}
+                    />
 
+                    <StatCard 
+                        title="NOCTURNAS" 
+                        value={formatHoursMinutes(week.nightDuration)} 
+                        icon={<span className="text-blue-400">🌙</span>}
+                        isExpandable={hasNocturnalHours}
+                        isDetailsVisible={detailsVisible === 'nocturnal'}
+                        onClick={hasNocturnalHours ? () => setDetailsVisible(prev => prev === 'nocturnal' ? 'none' : 'nocturnal') : undefined}
+                    >
+                        {hasNocturnalHours && (
+                            <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
+                                <DateList dates={week.nocturnalDates} />
+                            </div>
+                        )}
+                    </StatCard>
+
+                    <StatCard 
+                        title="FESTIVAS" 
+                        value={formatHoursMinutes(week.holidayDuration)} 
+                        icon={<span className="text-yellow-400">☀️</span>}
+                        isExpandable={hasHolidayHours}
+                        isDetailsVisible={detailsVisible === 'holiday'}
+                        onClick={hasHolidayHours ? () => setDetailsVisible(prev => prev === 'holiday' ? 'none' : 'holiday') : undefined}
+                    >
+                        {hasHolidayHours && (
+                            <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
+                                <DateList dates={week.holidayDates} />
+                            </div>
+                        )}
+                    </StatCard>
+                </div>
+             </div>
+
+             {/* Collapsible individual sessions list */}
+             <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-[2000px]' : 'max-h-0'}`}>
+                <div className="px-4 pb-4">
+                    <hr className="border-slate-700/50 my-4"/>
                     <HistoryList 
                         sessions={week.sessions}
                         onEdit={onEdit}
