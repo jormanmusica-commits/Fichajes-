@@ -74,7 +74,7 @@ const TimeCard: React.FC<TimeCardProps> = ({ session, isExpanded, onToggle, onEd
           {summaryDate}
         </div>
         <div className="font-semibold text-purple-400 text-base sm:text-lg">
-          Total Horas: {displayDuration}
+          Horas: {displayDuration}
         </div>
       </div>
 

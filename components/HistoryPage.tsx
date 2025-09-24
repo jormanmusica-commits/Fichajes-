@@ -220,16 +220,6 @@ interface WeekSummaryCardProps {
 
 const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelete }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [showNocturnalDetails, setShowNocturnalDetails] = useState(false);
-    const [showHolidayDetails, setShowHolidayDetails] = useState(false);
-
-    // Reset details visibility when the main card collapses
-    useEffect(() => {
-        if (!isExpanded) {
-            setShowNocturnalDetails(false);
-            setShowHolidayDetails(false);
-        }
-    }, [isExpanded]);
     
     const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
     const weekRange = `${week.startDate.toLocaleDateString('es-ES', dateOptions)} - ${week.endDate.toLocaleDateString('es-ES', dateOptions)}`;
@@ -266,9 +256,7 @@ const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelet
                             title="NOCTURNAS" 
                             value={formatHoursMinutes(week.nightDuration)} 
                             icon={<span className="text-blue-400">🌙</span>}
-                            onClick={hasNocturnalHours ? () => setShowNocturnalDetails(!showNocturnalDetails) : undefined}
-                            isExpandable={hasNocturnalHours}
-                            isDetailsVisible={showNocturnalDetails}
+                            isDetailsVisible={hasNocturnalHours}
                         >
                             {hasNocturnalHours && (
                                 <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
@@ -281,9 +269,7 @@ const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelet
                             title="FESTIVAS" 
                             value={formatHoursMinutes(week.holidayDuration)} 
                             icon={<span className="text-yellow-400">☀️</span>}
-                            onClick={hasHolidayHours ? () => setShowHolidayDetails(!showHolidayDetails) : undefined}
-                            isExpandable={hasHolidayHours}
-                            isDetailsVisible={showHolidayDetails}
+                            isDetailsVisible={hasHolidayHours}
                         >
                             {hasHolidayHours && (
                                 <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
