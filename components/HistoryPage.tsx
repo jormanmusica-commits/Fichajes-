@@ -220,6 +220,7 @@ interface WeekSummaryCardProps {
 
 const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelete }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [detailsVisible, setDetailsVisible] = useState<'none' | 'nocturnal' | 'holiday'>('none');
     
     const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
     const weekRange = `${week.startDate.toLocaleDateString('es-ES', dateOptions)} - ${week.endDate.toLocaleDateString('es-ES', dateOptions)}`;
@@ -256,7 +257,9 @@ const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelet
                             title="NOCTURNAS" 
                             value={formatHoursMinutes(week.nightDuration)} 
                             icon={<span className="text-blue-400">🌙</span>}
-                            isDetailsVisible={hasNocturnalHours}
+                            isExpandable={hasNocturnalHours}
+                            isDetailsVisible={detailsVisible === 'nocturnal'}
+                            onClick={hasNocturnalHours ? () => setDetailsVisible(prev => prev === 'nocturnal' ? 'none' : 'nocturnal') : undefined}
                         >
                             {hasNocturnalHours && (
                                 <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
@@ -269,7 +272,9 @@ const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelet
                             title="FESTIVAS" 
                             value={formatHoursMinutes(week.holidayDuration)} 
                             icon={<span className="text-yellow-400">☀️</span>}
-                            isDetailsVisible={hasHolidayHours}
+                            isExpandable={hasHolidayHours}
+                            isDetailsVisible={detailsVisible === 'holiday'}
+                            onClick={hasHolidayHours ? () => setDetailsVisible(prev => prev === 'holiday' ? 'none' : 'holiday') : undefined}
                         >
                             {hasHolidayHours && (
                                 <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
