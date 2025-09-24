@@ -455,7 +455,6 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                 />
             </div>
 
-
             {weeklyData.length === 0 ? (
                  <div className="text-center py-10 px-6 bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-lg">
                     {searchTerm ? (

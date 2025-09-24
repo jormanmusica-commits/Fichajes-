@@ -7,6 +7,8 @@ interface CurrentStatusProps {
   onClockOutClick: () => void;
   formatDuration: (ms: number) => string;
   onGoToHistory: () => void;
+  onExport: () => void;
+  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const PlayIcon: React.FC = () => (
@@ -21,7 +23,19 @@ const StopIcon: React.FC = () => (
     </svg>
 );
 
-const CurrentStatus: React.FC<CurrentStatusProps> = ({ currentTime, activeSession, onClockInClick, onClockOutClick, formatDuration, onGoToHistory }) => {
+const ExportIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+    </svg>
+);
+
+const ImportIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+);
+
+const CurrentStatus: React.FC<CurrentStatusProps> = ({ currentTime, activeSession, onClockInClick, onClockOutClick, formatDuration, onGoToHistory, onExport, onImport }) => {
     
     const runningDuration = activeSession ? currentTime.getTime() - activeSession.startTime.getTime() : 0;
 
@@ -65,6 +79,32 @@ const CurrentStatus: React.FC<CurrentStatusProps> = ({ currentTime, activeSessio
                     <span>Ver historial completo</span>
                     <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">&rarr;</span>
                 </button>
+            </div>
+            <div className="w-full border-t border-slate-700/50 mt-8 pt-6">
+                <h3 className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+                    Gestión de Datos
+                </h3>
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    <button
+                        onClick={onExport}
+                        className="flex items-center justify-center w-full sm:w-auto text-sm font-semibold px-6 py-3 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 shadow-lg"
+                        aria-label="Exportar todos los datos a un archivo JSON"
+                    >
+                        <ExportIcon />
+                        Exportar Datos
+                    </button>
+                    
+                    <label className="flex items-center justify-center w-full sm:w-auto text-sm font-semibold px-6 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 shadow-lg cursor-pointer" aria-label="Importar datos desde un archivo JSON">
+                        <ImportIcon />
+                        Importar Datos
+                        <input
+                            type="file"
+                            accept=".json,application/json"
+                            className="hidden"
+                            onChange={onImport}
+                        />
+                    </label>
+                </div>
             </div>
         </div>
     );

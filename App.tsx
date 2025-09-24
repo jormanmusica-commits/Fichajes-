@@ -140,6 +140,105 @@ const App: React.FC = () => {
     setModalMode(null);
   };
 
+  const handleExportData = async () => {
+    try {
+        const dataToExport = {
+            workSessions: workSessions,
+            activeSession: activeSession,
+        };
+        const jsonString = JSON.stringify(dataToExport, null, 2);
+        
+        const date = new Date();
+        const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        const month = monthNames[date.getMonth()];
+        const day = date.getDate();
+        const fileName = `Fichaje-${month}-${day}.json`;
+
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const file = new File([blob], fileName, { type: blob.type });
+
+        // Use Web Share API if available
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                title: 'Copia de Seguridad de Fichajes',
+                text: `Copia de seguridad del ${day} de ${month}.`,
+                files: [file],
+            });
+        } else {
+            // Fallback to download link
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+    } catch (error) {
+        // Avoid showing an error if the user cancels the share dialog
+        if ((error as DOMException).name === 'AbortError') {
+            console.log("Share action was cancelled by the user.");
+        } else {
+            console.error("Error exporting data:", error);
+            alert("Hubo un error al exportar los datos.");
+        }
+    }
+  };
+
+  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!window.confirm('¿Estás seguro de que quieres importar los datos? Esto sobreescribirá todos los datos actuales.')) {
+        event.target.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result;
+        if (typeof text !== 'string') {
+          throw new Error("File content is not a string.");
+        }
+        const data = JSON.parse(text);
+
+        if (!data || !Array.isArray(data.workSessions)) {
+          throw new Error("Invalid file format: 'workSessions' array not found.");
+        }
+        
+        const parsedSessions: WorkSession[] = data.workSessions.map((s: any) => ({
+          id: s.id,
+          startTime: new Date(s.startTime),
+          endTime: new Date(s.endTime),
+          duration: s.duration,
+        }));
+
+        let parsedActiveSession: ActiveSession | null = null;
+        if (data.activeSession) {
+             parsedActiveSession = {
+                id: data.activeSession.id,
+                startTime: new Date(data.activeSession.startTime)
+             }
+        }
+        
+        setWorkSessions(parsedSessions.sort((a, b) => b.startTime.getTime() - a.startTime.getTime()));
+        setActiveSession(parsedActiveSession);
+
+        alert("Datos importados correctamente.");
+      } catch (error) {
+        console.error("Error importing data:", error);
+        alert("Hubo un error al importar el archivo. Asegúrate de que es un archivo de copia de seguridad válido.");
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="min-h-screen text-slate-100">
       <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
@@ -153,6 +252,8 @@ const App: React.FC = () => {
                     onClockOutClick={handleClockOutClick}
                     formatDuration={formatDuration}
                     onGoToHistory={() => setView('history')}
+                    onExport={handleExportData}
+                    onImport={handleImportData}
                 />
             </main>
         ) : (
