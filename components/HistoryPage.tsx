@@ -131,11 +131,6 @@ interface WeekData {
     endDate: Date;
     sessions: WorkSession[];
     totalDuration: number;
-    totalDurationWithBreaks: number;
-    nightDuration: number;
-    holidayDuration: number;
-    nocturnalDates: Date[];
-    holidayDates: Date[];
 }
 
 // --- ICONS ---
@@ -210,6 +205,70 @@ const DateList: React.FC<{ dates: Date[] }> = ({ dates }) => {
     );
 };
 
+// --- GLOBAL SUMMARY COMPONENT ---
+interface GlobalSummaryCardProps {
+    summary: {
+        totalDuration: number;
+        totalDurationWithBreaks: number;
+        nightDuration: number;
+        holidayDuration: number;
+        nocturnalDates: Date[];
+        holidayDates: Date[];
+    }
+}
+
+const GlobalSummaryCard: React.FC<GlobalSummaryCardProps> = ({ summary }) => {
+    const [detailsVisible, setDetailsVisible] = useState<'none' | 'nocturnal' | 'holiday'>('none');
+    const hasNocturnalHours = summary.nocturnalDates.length > 0;
+    const hasHolidayHours = summary.holidayDates.length > 0;
+
+    return (
+        <div className="bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-slate-200 text-center mb-4">Resumen Total</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                <StatCard title="TOTAL BRUTO" value={formatHoursMinutes(summary.totalDuration)} icon={<span className="text-purple-400 text-lg font-bold">Σ</span>} />
+                
+                <StatCard 
+                    title="TOTAL REAL"
+                    subTitle="(-30 min/día)"
+                    value={formatHoursMinutes(summary.totalDurationWithBreaks)} 
+                    icon={<span className="text-green-400 text-lg font-bold">✓</span>}
+                />
+
+                <StatCard 
+                    title="NOCTURNAS" 
+                    value={formatHoursMinutes(summary.nightDuration)} 
+                    icon={<span className="text-blue-400">🌙</span>}
+                    isExpandable={hasNocturnalHours}
+                    isDetailsVisible={detailsVisible === 'nocturnal'}
+                    onClick={hasNocturnalHours ? () => setDetailsVisible(prev => prev === 'nocturnal' ? 'none' : 'nocturnal') : undefined}
+                >
+                    {hasNocturnalHours && (
+                        <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
+                            <DateList dates={summary.nocturnalDates} />
+                        </div>
+                    )}
+                </StatCard>
+
+                <StatCard 
+                    title="FESTIVAS" 
+                    value={formatHoursMinutes(summary.holidayDuration)} 
+                    icon={<span className="text-yellow-400">☀️</span>}
+                    isExpandable={hasHolidayHours}
+                    isDetailsVisible={detailsVisible === 'holiday'}
+                    onClick={hasHolidayHours ? () => setDetailsVisible(prev => prev === 'holiday' ? 'none' : 'holiday') : undefined}
+                >
+                    {hasHolidayHours && (
+                        <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
+                            <DateList dates={summary.holidayDates} />
+                        </div>
+                    )}
+                </StatCard>
+            </div>
+        </div>
+    );
+};
+
 
 // --- WEEK SUMMARY COMPONENT ---
 interface WeekSummaryCardProps {
@@ -220,13 +279,9 @@ interface WeekSummaryCardProps {
 
 const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelete }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [detailsVisible, setDetailsVisible] = useState<'none' | 'nocturnal' | 'holiday'>('none');
     
     const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
     const weekRange = `${week.startDate.toLocaleDateString('es-ES', dateOptions)} - ${week.endDate.toLocaleDateString('es-ES', dateOptions)}`;
-    
-    const hasNocturnalHours = week.nocturnalDates.length > 0;
-    const hasHolidayHours = week.holidayDates.length > 0;
 
     return (
         <div className="bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-lg">
@@ -240,55 +295,10 @@ const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelet
                     <ChevronDownIcon className={`w-6 h-6 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                 </div>
              </div>
-             
-             {/* Always visible stats section */}
-             <div className="px-4 pb-2 pt-2 border-t border-slate-700/50">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 my-4">
-                    <StatCard title="TOTAL BRUTO" value={formatHoursMinutes(week.totalDuration)} icon={<span className="text-purple-400 text-lg font-bold">Σ</span>} />
-                    
-                    <StatCard 
-                        title="TOTAL REAL"
-                        subTitle="(-30 min/día)"
-                        value={formatHoursMinutes(week.totalDurationWithBreaks)} 
-                        icon={<span className="text-green-400 text-lg font-bold">✓</span>}
-                    />
-
-                    <StatCard 
-                        title="NOCTURNAS" 
-                        value={formatHoursMinutes(week.nightDuration)} 
-                        icon={<span className="text-blue-400">🌙</span>}
-                        isExpandable={hasNocturnalHours}
-                        isDetailsVisible={detailsVisible === 'nocturnal'}
-                        onClick={hasNocturnalHours ? () => setDetailsVisible(prev => prev === 'nocturnal' ? 'none' : 'nocturnal') : undefined}
-                    >
-                        {hasNocturnalHours && (
-                            <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
-                                <DateList dates={week.nocturnalDates} />
-                            </div>
-                        )}
-                    </StatCard>
-
-                    <StatCard 
-                        title="FESTIVAS" 
-                        value={formatHoursMinutes(week.holidayDuration)} 
-                        icon={<span className="text-yellow-400">☀️</span>}
-                        isExpandable={hasHolidayHours}
-                        isDetailsVisible={detailsVisible === 'holiday'}
-                        onClick={hasHolidayHours ? () => setDetailsVisible(prev => prev === 'holiday' ? 'none' : 'holiday') : undefined}
-                    >
-                        {hasHolidayHours && (
-                            <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
-                                <DateList dates={week.holidayDates} />
-                            </div>
-                        )}
-                    </StatCard>
-                </div>
-             </div>
 
              {/* Collapsible individual sessions list */}
              <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-[2000px]' : 'max-h-0'}`}>
-                <div className="px-4 pb-4">
-                    <hr className="border-slate-700/50 my-4"/>
+                <div className="px-4 pb-4 pt-2 border-t border-slate-700/50">
                     <HistoryList 
                         sessions={week.sessions}
                         onEdit={onEdit}
@@ -352,6 +362,54 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
         });
     }, [sessions, searchTerm]);
 
+    const globalSummary = useMemo(() => {
+        let totalDuration = 0;
+        let nightDuration = 0;
+        let holidayDuration = 0;
+        const nocturnalDates = new Set<string>();
+        const holidayDates = new Set<string>();
+        const workedDays = new Set<string>();
+
+        filteredSessions.forEach(s => {
+            totalDuration += s.endTime.getTime() - s.startTime.getTime();
+            
+            const nightInfo = calculateNightDuration(s);
+            nightDuration += nightInfo.duration;
+            nightInfo.dates.forEach(d => nocturnalDates.add(getLocalDateString(d)));
+
+            const holidayInfo = calculateHolidayDuration(s);
+            holidayDuration += holidayInfo.duration;
+            holidayInfo.dates.forEach(d => holidayDates.add(getLocalDateString(d)));
+            
+            // Find all unique calendar days the session touches
+            const loopStartDate = new Date(s.startTime);
+            loopStartDate.setHours(0, 0, 0, 0);
+
+            for (let dayTime = loopStartDate.getTime(); dayTime < s.endTime.getTime(); dayTime += 24 * 60 * 60 * 1000) {
+                const currentDay = new Date(dayTime);
+                const dayStart = currentDay.getTime();
+                const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+                
+                const overlap = calculateIntervalOverlap(s.startTime.getTime(), s.endTime.getTime(), dayStart, dayEnd);
+                if (overlap > 0) {
+                    workedDays.add(getLocalDateString(currentDay));
+                }
+            }
+        });
+        
+        const totalBreakTimeMs = workedDays.size * 30 * 60 * 1000;
+        const totalDurationWithBreaks = Math.max(0, totalDuration - totalBreakTimeMs);
+        
+        return {
+            totalDuration,
+            totalDurationWithBreaks,
+            nightDuration,
+            holidayDuration,
+            nocturnalDates: Array.from(nocturnalDates).map(ds => new Date(`${ds}T00:00:00`)).sort((a,b) => a.getTime() - b.getTime()),
+            holidayDates: Array.from(holidayDates).map(ds => new Date(`${ds}T00:00:00`)).sort((a,b) => a.getTime() - b.getTime()),
+        };
+    }, [filteredSessions]);
+
     const weeklyData = useMemo<WeekData[]>(() => {
         const groupedByWeek: Record<string, { startDate: Date, sessions: WorkSession[] }> = {};
 
@@ -372,41 +430,9 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                 endDate.setHours(23, 59, 59, 999);
 
                 let totalDuration = 0;
-                let nightDuration = 0;
-                let holidayDuration = 0;
-                const nocturnalDates = new Set<string>();
-                const holidayDates = new Set<string>();
-                const workedDays = new Set<string>();
-
                 sessions.forEach(s => {
                     totalDuration += s.endTime.getTime() - s.startTime.getTime();
-                    
-                    const nightInfo = calculateNightDuration(s);
-                    nightDuration += nightInfo.duration;
-                    nightInfo.dates.forEach(d => nocturnalDates.add(getLocalDateString(d)));
-
-                    const holidayInfo = calculateHolidayDuration(s);
-                    holidayDuration += holidayInfo.duration;
-                    holidayInfo.dates.forEach(d => holidayDates.add(getLocalDateString(d)));
-                    
-                    // Find all unique calendar days the session touches
-                    const loopStartDate = new Date(s.startTime);
-                    loopStartDate.setHours(0, 0, 0, 0);
-
-                    for (let dayTime = loopStartDate.getTime(); dayTime < s.endTime.getTime(); dayTime += 24 * 60 * 60 * 1000) {
-                        const currentDay = new Date(dayTime);
-                        const dayStart = currentDay.getTime();
-                        const dayEnd = dayStart + 24 * 60 * 60 * 1000;
-                        
-                        const overlap = calculateIntervalOverlap(s.startTime.getTime(), s.endTime.getTime(), dayStart, dayEnd);
-                        if (overlap > 0) {
-                            workedDays.add(getLocalDateString(currentDay));
-                        }
-                    }
                 });
-                
-                const totalBreakTimeMs = workedDays.size * 30 * 60 * 1000;
-                const totalDurationWithBreaks = Math.max(0, totalDuration - totalBreakTimeMs);
                 
                 return {
                     id: startDate.toISOString(),
@@ -414,11 +440,6 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                     endDate,
                     sessions,
                     totalDuration,
-                    totalDurationWithBreaks,
-                    nightDuration,
-                    holidayDuration,
-                    nocturnalDates: Array.from(nocturnalDates).map(ds => new Date(`${ds}T00:00:00`)).sort((a,b) => a.getTime() - b.getTime()),
-                    holidayDates: Array.from(holidayDates).map(ds => new Date(`${ds}T00:00:00`)).sort((a,b) => a.getTime() - b.getTime()),
                 };
             })
             .sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
@@ -427,13 +448,15 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
 
     return (
         <main>
-            <div className="flex justify-between items-center pb-2 mb-6 border-b border-slate-700">
-                <h3 className="text-2xl font-semibold text-slate-300">Historial de Fichajes</h3>
-                <button onClick={onBack} className="flex items-center text-sm px-3 py-1.5 rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">
+            <div className="relative flex justify-center items-center pb-2 mb-6 border-b border-slate-700">
+                <h3 className="text-2xl font-semibold text-white">Historial de Fichajes</h3>
+                <button onClick={onBack} className="absolute right-0 flex items-center text-sm px-3 py-1.5 rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">
                     <BackIcon />
                     Volver
                 </button>
             </div>
+
+            {sessions.length > 0 && <GlobalSummaryCard summary={globalSummary} />}
             
             <div className="relative mb-6">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3" aria-hidden="true">

@@ -242,9 +242,9 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen text-slate-100">
       <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-        <Header />
         {view === 'home' ? (
             <main>
+                <Header />
                 <CurrentStatus
                     currentTime={currentTime}
                     activeSession={activeSession}
