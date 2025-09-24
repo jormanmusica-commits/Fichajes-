@@ -74,27 +74,26 @@ const CurrentStatus: React.FC<CurrentStatusProps> = ({ currentTime, activeSessio
              <div className="mt-8">
                 <button
                     onClick={onGoToHistory}
-                    className="text-purple-400 hover:text-purple-300 font-semibold transition-colors duration-200 group flex items-center gap-2"
+                    className="flex items-center justify-center w-64 h-12 text-md font-semibold text-white rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-opacity-50 shadow-lg bg-purple-600 hover:bg-purple-700 focus:ring-purple-500"
                 >
-                    <span>Ver historial completo</span>
-                    <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">&rarr;</span>
+                    Historial
                 </button>
             </div>
-            <div className="w-full border-t border-slate-700/50 mt-8 pt-6">
+            <div className="w-full border-t border-slate-700/50 mt-12 pt-8">
                 <h3 className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
                     Gestión de Datos
                 </h3>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <button
                         onClick={onExport}
-                        className="flex items-center justify-center w-full sm:w-auto text-sm font-semibold px-6 py-3 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 shadow-lg"
+                        className="flex items-center justify-center w-full sm:w-auto text-sm font-semibold px-6 py-3 rounded-lg text-slate-300 bg-slate-800 hover:bg-slate-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-600 focus:ring-opacity-50 shadow-md"
                         aria-label="Exportar todos los datos a un archivo JSON"
                     >
                         <ExportIcon />
                         Exportar Datos
                     </button>
                     
-                    <label className="flex items-center justify-center w-full sm:w-auto text-sm font-semibold px-6 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 shadow-lg cursor-pointer" aria-label="Importar datos desde un archivo JSON">
+                    <label className="flex items-center justify-center w-full sm:w-auto text-sm font-semibold px-6 py-3 rounded-lg text-slate-300 bg-slate-800 hover:bg-slate-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-600 focus:ring-opacity-50 shadow-md cursor-pointer" aria-label="Importar datos desde un archivo JSON">
                         <ImportIcon />
                         Importar Datos
                         <input
