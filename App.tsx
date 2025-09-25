@@ -280,34 +280,49 @@ const App: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen text-slate-100"
+      className="min-h-screen text-slate-100 relative overflow-x-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {view === 'home' ? (
-          <>
-              <Header />
-              <main className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-                  <CurrentStatus
-                      currentTime={currentTime}
-                      activeSession={activeSession}
-                      onClockInClick={handleClockInClick}
-                      onClockOutClick={handleClockOutClick}
-                      formatDuration={formatDuration}
-                      onGoToHistory={() => setView('history')}
-                      onExport={handleExportData}
-                      onImport={handleImportData}
-                  />
-              </main>
-          </>
-      ) : (
-          <HistoryPage 
-              sessions={workSessions}
-              onBack={() => setView('home')}
-              onEdit={openEditModal}
-              onDelete={handleDeleteSession}
-          />
-      )}
+      {/* --- Home View --- */}
+      <div aria-hidden={view === 'history'}>
+          <Header />
+          <main className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+              <CurrentStatus
+                  currentTime={currentTime}
+                  activeSession={activeSession}
+                  onClockInClick={handleClockInClick}
+                  onClockOutClick={handleClockOutClick}
+                  formatDuration={formatDuration}
+                  onGoToHistory={() => setView('history')}
+                  onExport={handleExportData}
+                  onImport={handleImportData}
+              />
+          </main>
+      </div>
+
+      {/* --- History View (Sliding Panel) --- */}
+      <div
+        className={`fixed inset-0 transition-transform duration-500 ease-in-out z-10 overflow-y-auto ${view === 'history' ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ 
+          backgroundImage: 'linear-gradient(to bottom right, #1e3a8a, #0f172a, #000000)',
+          // Replicate body padding for safe areas on iOS
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+        aria-hidden={view === 'home'}
+      >
+        <HistoryPage 
+            sessions={workSessions}
+            onBack={() => setView('home')}
+            onEdit={openEditModal}
+            onDelete={handleDeleteSession}
+        />
+      </div>
+      
+      {/* --- Modal (Stays on top) --- */}
       <SessionModal 
         isOpen={isModalOpen}
         onClose={closeModal}
