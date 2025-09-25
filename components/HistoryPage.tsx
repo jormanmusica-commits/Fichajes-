@@ -491,12 +491,17 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
 
             {sessions.length > 0 && <GlobalSummaryCard summary={globalSummary} />}
             
-            <div className="relative mb-6">
+            <form
+                onSubmit={(e) => e.preventDefault()}
+                role="search"
+                className="relative mb-6"
+            >
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3" aria-hidden="true">
                     <SearchIcon />
                 </span>
                 <input
-                    type="text"
+                    type="search"
+                    inputMode="search"
                     placeholder="Buscar por día, fecha, 'nocturna', 'festivo'..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -506,7 +511,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                     autoCorrect="off"
                     spellCheck="false"
                 />
-            </div>
+            </form>
 
             {weeklyData.length === 0 ? (
                  <div className="text-center py-10 px-6 bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-lg">
