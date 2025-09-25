@@ -480,8 +480,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
     };
 
     return (
-        <main>
-            <div className="relative flex justify-center items-center pb-2 mb-6 border-b border-slate-700">
+        <>
+            <div className="sticky top-0 z-10 flex justify-center items-center relative py-4 border-b border-slate-700/50 bg-slate-900/70 backdrop-blur-lg px-4 sm:px-6 lg:px-8">
                 <h3 className="text-2xl font-semibold text-white">Historial de Fichajes</h3>
                 <button onClick={onBack} className="absolute right-0 flex items-center text-sm px-3 py-1.5 rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">
                     <BackIcon />
@@ -489,59 +489,61 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                 </button>
             </div>
 
-            {sessions.length > 0 && <GlobalSummaryCard summary={globalSummary} />}
-            
-            <form
-                onSubmit={(e) => e.preventDefault()}
-                role="search"
-                className="relative mb-6"
-            >
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3" aria-hidden="true">
-                    <SearchIcon />
-                </span>
-                <input
-                    type="search"
-                    inputMode="search"
-                    placeholder="Buscar por día, fecha, 'nocturna', 'festivo'..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-slate-200 bg-black/30 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
-                    aria-label="Buscar en el historial de fichajes"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck="false"
-                />
-            </form>
+            <main className="p-4 sm:p-6 lg:p-8">
+                {sessions.length > 0 && <GlobalSummaryCard summary={globalSummary} />}
+                
+                <form
+                    onSubmit={(e) => e.preventDefault()}
+                    role="search"
+                    className="relative mb-6"
+                >
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3" aria-hidden="true">
+                        <SearchIcon />
+                    </span>
+                    <input
+                        type="search"
+                        inputMode="search"
+                        placeholder="Buscar por día, fecha, 'nocturna', 'festivo'..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 text-slate-200 bg-black/30 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                        aria-label="Buscar en el historial de fichajes"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck="false"
+                    />
+                </form>
 
-            {weeklyData.length === 0 ? (
-                 <div className="text-center py-10 px-6 bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-lg">
-                    {searchTerm ? (
-                        <>
-                            <p className="text-slate-400">No se encontraron resultados para <span className="font-semibold text-slate-200">"{searchTerm}"</span>.</p>
-                            <p className="text-slate-500 mt-2">Intenta con otra búsqueda o borra el filtro.</p>
-                        </>
-                    ) : (
-                        <>
-                             <p className="text-slate-400">No hay fichajes registrados todavía.</p>
-                             <p className="text-slate-500 mt-2">Usa el botón "Fichar Entrada" para empezar a registrar tu jornada.</p>
-                        </>
-                    )}
-                 </div>
-            ) : (
-                <div className="space-y-6">
-                    {weeklyData.map(week => (
-                        <WeekSummaryCard
-                            key={week.id}
-                            week={week}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                            isExpanded={expandedWeeks === null || expandedWeeks.has(week.id)}
-                            onToggle={() => handleToggleWeek(week.id)}
-                        />
-                    ))}
-                </div>
-            )}
-        </main>
+                {weeklyData.length === 0 ? (
+                     <div className="text-center py-10 px-6 bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-lg">
+                        {searchTerm ? (
+                            <>
+                                <p className="text-slate-400">No se encontraron resultados para <span className="font-semibold text-slate-200">"{searchTerm}"</span>.</p>
+                                <p className="text-slate-500 mt-2">Intenta con otra búsqueda o borra el filtro.</p>
+                            </>
+                        ) : (
+                            <>
+                                 <p className="text-slate-400">No hay fichajes registrados todavía.</p>
+                                 <p className="text-slate-500 mt-2">Usa el botón "Fichar Entrada" para empezar a registrar tu jornada.</p>
+                            </>
+                        )}
+                     </div>
+                ) : (
+                    <div className="space-y-6">
+                        {weeklyData.map(week => (
+                            <WeekSummaryCard
+                                key={week.id}
+                                week={week}
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                                isExpanded={expandedWeeks === null || expandedWeeks.has(week.id)}
+                                onToggle={() => handleToggleWeek(week.id)}
+                            />
+                        ))}
+                    </div>
+                )}
+            </main>
+        </>
     );
 };
 

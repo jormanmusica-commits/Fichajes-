@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const ClockIcon: React.FC = () => (
@@ -9,7 +8,7 @@ const ClockIcon: React.FC = () => (
 
 const Header: React.FC = () => {
   return (
-    <header className="flex items-center justify-center py-6 mb-8 border-b-2 border-slate-700">
+    <header className="sticky top-0 z-10 flex items-center justify-center py-4 border-b border-slate-700/50 bg-slate-900/70 backdrop-blur-lg px-4 sm:px-6 lg:px-8">
       <ClockIcon />
       <h1 className="text-3xl sm:text-4xl font-bold tracking-wider text-slate-100">
         Control de Horario
