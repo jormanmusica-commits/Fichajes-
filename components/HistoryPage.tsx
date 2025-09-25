@@ -481,9 +481,9 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
 
     return (
         <>
-            <header className="sticky top-0 z-10 bg-slate-900/70 backdrop-blur-lg border-b border-slate-700/50">
-                <div className="container mx-auto max-w-4xl flex justify-center items-center relative py-4 px-4 sm:px-6 lg:px-8">
-                    <h3 className="text-2xl font-semibold text-white">Historial de Fichajes</h3>
+            <header className="sticky top-0 z-10 bg-gradient-to-b from-[#111827] to-transparent">
+                <div className="container mx-auto max-w-4xl flex justify-center items-center relative pt-6 pb-10 px-4 sm:px-6 lg:px-8">
+                    <h3 className="text-2xl font-semibold text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">Historial de Fichajes</h3>
                     <button onClick={onBack} className="absolute right-4 sm:right-6 lg:right-8 flex items-center text-sm px-3 py-1.5 rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">
                         <BackIcon />
                         Volver
