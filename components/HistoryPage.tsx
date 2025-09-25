@@ -481,15 +481,17 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
 
     return (
         <>
-            <div className="sticky top-0 z-10 flex justify-center items-center relative py-4 border-b border-slate-700/50 bg-slate-900/70 backdrop-blur-lg px-4 sm:px-6 lg:px-8">
-                <h3 className="text-2xl font-semibold text-white">Historial de Fichajes</h3>
-                <button onClick={onBack} className="absolute right-0 flex items-center text-sm px-3 py-1.5 rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">
-                    <BackIcon />
-                    Volver
-                </button>
-            </div>
+            <header className="sticky top-0 z-10 bg-slate-900/70 backdrop-blur-lg border-b border-slate-700/50">
+                <div className="container mx-auto max-w-4xl flex justify-center items-center relative py-4 px-4 sm:px-6 lg:px-8">
+                    <h3 className="text-2xl font-semibold text-white">Historial de Fichajes</h3>
+                    <button onClick={onBack} className="absolute right-4 sm:right-6 lg:right-8 flex items-center text-sm px-3 py-1.5 rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">
+                        <BackIcon />
+                        Volver
+                    </button>
+                </div>
+            </header>
 
-            <main className="p-4 sm:p-6 lg:p-8">
+            <main className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
                 {sessions.length > 0 && <GlobalSummaryCard summary={globalSummary} />}
                 
                 <form

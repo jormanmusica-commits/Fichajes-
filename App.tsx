@@ -241,32 +241,30 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen text-slate-100">
-      <div className="container mx-auto max-w-4xl">
-        {view === 'home' ? (
-            <>
-                <Header />
-                <main className="p-4 sm:p-6 lg:p-8">
-                    <CurrentStatus
-                        currentTime={currentTime}
-                        activeSession={activeSession}
-                        onClockInClick={handleClockInClick}
-                        onClockOutClick={handleClockOutClick}
-                        formatDuration={formatDuration}
-                        onGoToHistory={() => setView('history')}
-                        onExport={handleExportData}
-                        onImport={handleImportData}
-                    />
-                </main>
-            </>
-        ) : (
-            <HistoryPage 
-                sessions={workSessions}
-                onBack={() => setView('home')}
-                onEdit={openEditModal}
-                onDelete={handleDeleteSession}
-            />
-        )}
-      </div>
+      {view === 'home' ? (
+          <>
+              <Header />
+              <main className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+                  <CurrentStatus
+                      currentTime={currentTime}
+                      activeSession={activeSession}
+                      onClockInClick={handleClockInClick}
+                      onClockOutClick={handleClockOutClick}
+                      formatDuration={formatDuration}
+                      onGoToHistory={() => setView('history')}
+                      onExport={handleExportData}
+                      onImport={handleImportData}
+                  />
+              </main>
+          </>
+      ) : (
+          <HistoryPage 
+              sessions={workSessions}
+              onBack={() => setView('home')}
+              onEdit={openEditModal}
+              onDelete={handleDeleteSession}
+          />
+      )}
       <SessionModal 
         isOpen={isModalOpen}
         onClose={closeModal}
