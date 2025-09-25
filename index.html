@@ -2,9 +2,9 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Control de Horario</title>
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#111827">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/DZS0GgwD/wqeeq.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,11 @@
         background-color: #111827; /* Fallback */
         background-image: linear-gradient(to bottom right, #1e3a8a, #0f172a, #000000);
         color: #f1f5f9; /* slate-100 */
+        /* Support for edge-to-edge displays */
+        padding-top: env(safe-area-inset-top);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        padding-bottom: env(safe-area-inset-bottom);
       }
       .font-orbitron {
         font-family: 'Orbitron', sans-serif;
