@@ -275,17 +275,17 @@ interface WeekSummaryCardProps {
     week: WeekData;
     onEdit: (session: WorkSession) => void;
     onDelete: (sessionId: number) => void;
+    isExpanded: boolean;
+    onToggle: () => void;
 }
 
-const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelete }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    
+const WeekSummaryCard: React.FC<WeekSummaryCardProps> = ({ week, onEdit, onDelete, isExpanded, onToggle }) => {
     const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
     const weekRange = `${week.startDate.toLocaleDateString('es-ES', dateOptions)} - ${week.endDate.toLocaleDateString('es-ES', dateOptions)}`;
 
     return (
         <div className="bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-lg">
-             <div onClick={() => setIsExpanded(!isExpanded)} className="flex justify-between items-center p-4 cursor-pointer hover:bg-slate-800/20 rounded-t-xl transition-colors">
+             <div onClick={onToggle} className="flex justify-between items-center p-4 cursor-pointer hover:bg-slate-800/20 rounded-t-xl transition-colors">
                 <div>
                     <p className="text-sm text-slate-400">Semana</p>
                     <p className="font-semibold text-slate-200 text-lg">{weekRange}</p>
@@ -322,6 +322,18 @@ interface HistoryPageProps {
 
 const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onDelete }) => {
     const [searchTerm, setSearchTerm] = useState('');
+
+    const [expandedWeeks, setExpandedWeeks] = useState<Set<string> | null>(() => {
+        const savedState = localStorage.getItem('historyPageExpandedWeeks');
+        if (savedState) {
+            try {
+                return new Set(JSON.parse(savedState));
+            } catch (e) {
+                console.error('Error parsing expanded weeks from localStorage:', e);
+            }
+        }
+        return null; // Null signifies that we need to set the default state
+    });
 
     const filteredSessions = useMemo(() => {
         if (!searchTerm.trim()) {
@@ -446,6 +458,27 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
 
     }, [filteredSessions]);
 
+    useEffect(() => {
+        if (expandedWeeks === null && weeklyData.length > 0) {
+            setExpandedWeeks(new Set(weeklyData.map(w => w.id)));
+        } else if (expandedWeeks !== null) {
+            localStorage.setItem('historyPageExpandedWeeks', JSON.stringify(Array.from(expandedWeeks)));
+        }
+    }, [expandedWeeks, weeklyData]);
+
+    const handleToggleWeek = (weekId: string) => {
+        setExpandedWeeks(prev => {
+            const currentWeeks = prev === null ? new Set(weeklyData.map(w => w.id)) : prev;
+            const newSet = new Set(currentWeeks);
+            if (newSet.has(weekId)) {
+                newSet.delete(weekId);
+            } else {
+                newSet.add(weekId);
+            }
+            return newSet;
+        });
+    };
+
     return (
         <main>
             <div className="relative flex justify-center items-center pb-2 mb-6 border-b border-slate-700">
@@ -494,6 +527,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                             week={week}
                             onEdit={onEdit}
                             onDelete={onDelete}
+                            isExpanded={expandedWeeks === null || expandedWeeks.has(week.id)}
+                            onToggle={() => handleToggleWeek(week.id)}
                         />
                     ))}
                 </div>
