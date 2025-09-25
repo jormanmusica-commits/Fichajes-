@@ -134,12 +134,6 @@ interface WeekData {
 }
 
 // --- ICONS ---
-const BackIcon: React.FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-    </svg>
-);
-
 const SearchIcon: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -481,13 +475,9 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
 
     return (
         <>
-            <header className="sticky top-0 z-10 bg-gradient-to-b from-[#111827] to-transparent">
-                <div className="container mx-auto max-w-4xl flex justify-center items-center relative pt-6 pb-10 px-4 sm:px-6 lg:px-8">
+            <header>
+                <div className="container mx-auto max-w-4xl flex justify-center items-center py-8 px-4 sm:px-6 lg:px-8">
                     <h3 className="text-2xl font-semibold text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">Historial de Fichajes</h3>
-                    <button onClick={onBack} className="absolute right-4 sm:right-6 lg:right-8 flex items-center text-sm px-3 py-1.5 rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">
-                        <BackIcon />
-                        Volver
-                    </button>
                 </div>
             </header>
 

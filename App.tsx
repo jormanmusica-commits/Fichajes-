@@ -21,6 +21,10 @@ const App: React.FC = () => {
 
   const [view, setView] = useState<'home' | 'history'>('home');
 
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+
+
   useEffect(() => {
     // Load saved sessions from local storage
     const savedSessions = localStorage.getItem('workSessions');
@@ -239,8 +243,48 @@ const App: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isModalOpen) return;
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null || touchStartY === null || isModalOpen) {
+      return;
+    }
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    const minSwipeDist = 75;
+    const edgeZone = 50; // Pixels from the edge
+
+    // Ensure it's a horizontal swipe, not a vertical scroll
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > minSwipeDist) {
+        // Swipe Right (from left edge) -> Go Back
+        if (diffX > 0 && touchStartX < edgeZone && view === 'history') {
+            setView('home');
+        }
+        // Swipe Left (from right edge) -> Go Forward
+        else if (diffX < 0 && touchStartX > window.innerWidth - edgeZone && view === 'home') {
+            setView('history');
+        }
+    }
+
+    setTouchStartX(null);
+    setTouchStartY(null);
+  };
+
   return (
-    <div className="min-h-screen text-slate-100">
+    <div 
+      className="min-h-screen text-slate-100"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {view === 'home' ? (
           <>
               <Header />

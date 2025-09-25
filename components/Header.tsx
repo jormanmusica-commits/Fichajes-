@@ -8,8 +8,8 @@ const ClockIcon: React.FC = () => (
 
 const Header: React.FC = () => {
   return (
-    <header className="sticky top-0 z-10 bg-gradient-to-b from-[#111827] to-transparent">
-      <div className="container mx-auto max-w-4xl flex items-center justify-center pt-6 pb-10 px-4 sm:px-6 lg:px-8">
+    <header>
+      <div className="container mx-auto max-w-4xl flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
         <ClockIcon />
         <h1 className="text-3xl sm:text-4xl font-bold tracking-wider text-slate-100 [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
           Control de Horario
