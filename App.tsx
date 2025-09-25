@@ -261,16 +261,15 @@ const App: React.FC = () => {
     const diffY = touchEndY - touchStartY;
 
     const minSwipeDist = 75;
-    const edgeZone = 50; // Pixels from the edge
 
     // Ensure it's a horizontal swipe, not a vertical scroll
     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > minSwipeDist) {
-        // Swipe Right (from left edge) -> Go Back
-        if (diffX > 0 && touchStartX < edgeZone && view === 'history') {
+        // Swipe Right -> Go Back
+        if (diffX > 0 && view === 'history') {
             setView('home');
         }
-        // Swipe Left (from right edge) -> Go Forward
-        else if (diffX < 0 && touchStartX > window.innerWidth - edgeZone && view === 'home') {
+        // Swipe Left -> Go Forward
+        else if (diffX < 0 && view === 'home') {
             setView('history');
         }
     }
