@@ -3,23 +3,9 @@ import { WorkSession } from '../types';
 
 interface TimeCardProps {
   session: WorkSession;
-  isExpanded: boolean;
-  onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
-
-const CalendarIcon: React.FC<{className?: string}> = ({className}) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-);
-
-const ClockIcon: React.FC<{className?: string}> = ({className}) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
 
 const PencilIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
@@ -53,39 +39,31 @@ const formatSessionDuration = (startTime: Date, endTime: Date): string => {
         return '0Min';
     }
     
-    return parts.join(' - ');
+    return parts.join(' ');
 };
 
 
-const TimeCard: React.FC<TimeCardProps> = ({ session, isExpanded, onToggle, onEdit, onDelete }) => {
-  const detailDateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const sessionDate = session.startTime.toLocaleDateString('es-ES', detailDateOptions);
-
+const TimeCard: React.FC<TimeCardProps> = ({ session, onEdit, onDelete }) => {
   const summaryDateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'short' };
   const summaryDate = session.startTime.toLocaleDateString('es-ES', summaryDateOptions);
   
   const displayDuration = formatSessionDuration(session.startTime, session.endTime);
 
   return (
-    <div className="bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-lg transition-all duration-300 hover:border-purple-500 hover:scale-[1.01]">
-      {/* Clickable Summary Row */}
-      <div onClick={onToggle} className="flex justify-between items-center p-4 cursor-pointer">
+    <div className="bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-lg transition-all duration-300 hover:border-purple-500 hover:scale-[1.01] p-4">
+      {/* Summary Row */}
+      <div className="flex justify-between items-center mb-4">
         <div className="font-medium text-slate-200 capitalize">
           {summaryDate}
         </div>
         <div className="font-semibold text-purple-400 text-base sm:text-lg">
-          Horas: {displayDuration}
+          {displayDuration}
         </div>
       </div>
 
-      {/* Expandable Details View */}
-      <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-96' : 'max-h-0'}`}>
-        <div className="px-4 pb-4 pt-2 border-t border-slate-700/50">
-           <div className="flex items-center text-slate-400 my-2">
-                <CalendarIcon className="w-5 h-5 mr-2" />
-                <span className="font-medium capitalize">{sessionDate}</span>
-            </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mt-2">
+      {/* Details View */}
+      <div className="border-t border-slate-700/50 pt-4">
+          <div className="grid grid-cols-2 gap-4 text-center">
             <div className="flex flex-col p-3 bg-black/20 rounded-lg">
               <span className="text-sm font-medium text-pink-400">ENTRADA</span>
               <span className="text-xl font-semibold text-slate-200">{session.startTime.toLocaleTimeString('es-ES')}</span>
@@ -93,13 +71,6 @@ const TimeCard: React.FC<TimeCardProps> = ({ session, isExpanded, onToggle, onEd
             <div className="flex flex-col p-3 bg-black/20 rounded-lg">
               <span className="text-sm font-medium text-red-400">SALIDA</span>
               <span className="text-xl font-semibold text-slate-200">{session.endTime.toLocaleTimeString('es-ES')}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-3 bg-purple-900/40 rounded-lg sm:col-span-1">
-              <span className="text-sm font-medium text-purple-400">TOTAL TRABAJADO</span>
-              <div className="flex items-center mt-1">
-                  <ClockIcon className="w-6 h-6 mr-2 text-purple-400" />
-                  <span className="text-2xl font-bold text-white tracking-wider">{displayDuration}</span>
-              </div>
             </div>
           </div>
           {/* Action Buttons */}
@@ -119,7 +90,6 @@ const TimeCard: React.FC<TimeCardProps> = ({ session, isExpanded, onToggle, onEd
                   Eliminar
               </button>
           </div>
-        </div>
       </div>
     </div>
   );
