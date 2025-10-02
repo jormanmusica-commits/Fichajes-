@@ -132,6 +132,8 @@ export interface WeekData {
   sessions: WorkSession[];
   totalDuration: number;
   totalDurationWithBreaks: number;
+  nightDuration: number;
+  holidayDuration: number;
 }
 
 // --- ICONS ---
@@ -194,23 +196,6 @@ const StatCard: React.FC<StatCardProps> = ({title, subTitle, value, icon, childr
     </div>
 );
 
-const DateList: React.FC<{ dates: Date[] }> = ({ dates }) => {
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-    };
-
-    return (
-        <div className="flex flex-wrap gap-2 justify-center pt-2">
-            {dates.map(date => (
-                <span key={date.toISOString()} className="bg-slate-700/50 text-slate-300 text-xs font-medium px-2.5 py-1 rounded-full capitalize">
-                    {formatDate(date)}
-                </span>
-            ))}
-        </div>
-    );
-};
-
-
 // --- GLOBAL SUMMARY COMPONENT ---
 interface GlobalSummaryCardProps {
     summary: {
@@ -224,12 +209,13 @@ interface GlobalSummaryCardProps {
     weeklyData: WeekData[];
     onGoToBrutoBreakdown: () => void;
     onGoToRealBreakdown: () => void;
+    onGoToNocturnalBreakdown: () => void;
+    onGoToHolidayBreakdown: () => void;
 }
 
-const GlobalSummaryCard: React.FC<GlobalSummaryCardProps> = ({ summary, weeklyData, onGoToBrutoBreakdown, onGoToRealBreakdown }) => {
-    const [detailsVisible, setDetailsVisible] = useState<'none' | 'nocturnal' | 'holiday'>('none');
-    const hasNocturnalHours = summary.nocturnalDates.length > 0;
-    const hasHolidayHours = summary.holidayDates.length > 0;
+const GlobalSummaryCard: React.FC<GlobalSummaryCardProps> = ({ summary, weeklyData, onGoToBrutoBreakdown, onGoToRealBreakdown, onGoToNocturnalBreakdown, onGoToHolidayBreakdown }) => {
+    const hasNocturnalHours = summary.nightDuration > 0;
+    const hasHolidayHours = summary.holidayDuration > 0;
 
     return (
         <div className="bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-lg p-4 mb-6">
@@ -256,31 +242,17 @@ const GlobalSummaryCard: React.FC<GlobalSummaryCardProps> = ({ summary, weeklyDa
                     title="NOCTURNAS" 
                     value={formatHoursMinutes(summary.nightDuration)} 
                     icon={<span className="text-blue-400">🌙</span>}
-                    isExpandable={hasNocturnalHours}
-                    isDetailsVisible={detailsVisible === 'nocturnal'}
-                    onClick={hasNocturnalHours ? () => setDetailsVisible(prev => prev === 'nocturnal' ? 'none' : 'nocturnal') : undefined}
-                >
-                    {hasNocturnalHours && (
-                        <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
-                            <DateList dates={summary.nocturnalDates} />
-                        </div>
-                    )}
-                </StatCard>
+                    isNavigable={hasNocturnalHours}
+                    onClick={hasNocturnalHours ? onGoToNocturnalBreakdown : undefined}
+                />
 
                 <StatCard 
                     title="FESTIVAS" 
                     value={formatHoursMinutes(summary.holidayDuration)} 
                     icon={<span className="text-yellow-400">☀️</span>}
-                    isExpandable={hasHolidayHours}
-                    isDetailsVisible={detailsVisible === 'holiday'}
-                    onClick={hasHolidayHours ? () => setDetailsVisible(prev => prev === 'holiday' ? 'none' : 'holiday') : undefined}
-                >
-                    {hasHolidayHours && (
-                        <div className="w-full mt-3 pt-3 border-t border-slate-700/50">
-                            <DateList dates={summary.holidayDates} />
-                        </div>
-                    )}
-                </StatCard>
+                    isNavigable={hasHolidayHours}
+                    onClick={hasHolidayHours ? onGoToHolidayBreakdown : undefined}
+                />
             </div>
         </div>
     );
@@ -337,9 +309,11 @@ interface HistoryPageProps {
   onDelete: (sessionId: number) => void;
   onGoToBrutoBreakdown: (weeklyData: WeekData[]) => void;
   onGoToRealBreakdown: (weeklyData: WeekData[]) => void;
+  onGoToNocturnalBreakdown: (weeklyData: WeekData[]) => void;
+  onGoToHolidayBreakdown: (weeklyData: WeekData[]) => void;
 }
 
-const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onDelete, onGoToBrutoBreakdown, onGoToRealBreakdown }) => {
+const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onDelete, onGoToBrutoBreakdown, onGoToRealBreakdown, onGoToNocturnalBreakdown, onGoToHolidayBreakdown }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const [expandedWeeks, setExpandedWeeks] = useState<Set<string> | null>(() => {
@@ -461,10 +435,14 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                 endDate.setHours(23, 59, 59, 999);
 
                 let totalDuration = 0;
+                let nightDuration = 0;
+                let holidayDuration = 0;
                 const workedDays = new Set<string>();
 
                 sessions.forEach(s => {
                     totalDuration += s.endTime.getTime() - s.startTime.getTime();
+                    nightDuration += calculateNightDuration(s).duration;
+                    holidayDuration += calculateHolidayDuration(s).duration;
 
                     // Find all unique calendar days the session touches for this week
                     const loopStartDate = new Date(s.startTime);
@@ -492,6 +470,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                     sessions,
                     totalDuration,
                     totalDurationWithBreaks,
+                    nightDuration,
+                    holidayDuration,
                 };
             })
             .sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
@@ -534,6 +514,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
                         weeklyData={weeklyData} 
                         onGoToBrutoBreakdown={() => onGoToBrutoBreakdown(weeklyData)}
                         onGoToRealBreakdown={() => onGoToRealBreakdown(weeklyData)}
+                        onGoToNocturnalBreakdown={() => onGoToNocturnalBreakdown(weeklyData)}
+                        onGoToHolidayBreakdown={() => onGoToHolidayBreakdown(weeklyData)}
                     />
                 }
                 

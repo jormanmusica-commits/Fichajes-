@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { WorkSession } from './types';
 import Header from './components/Header';
 import CurrentStatus from './components/CurrentStatus';
@@ -35,15 +35,41 @@ const ArrowLeftIcon: React.FC = () => (
 
 interface WeeklyBreakdownPageProps {
   weeklyData: WeekData[];
-  dataType: 'bruto' | 'real';
+  dataType: 'bruto' | 'real' | 'nocturnal' | 'holiday';
   onBack: () => void;
 }
 
 const WeeklyBreakdownPage: React.FC<WeeklyBreakdownPageProps> = ({ weeklyData, dataType, onBack }) => {
-  const title = dataType === 'bruto' ? 'Total Bruto' : 'Total Real';
-  const subTitle = dataType === 'real' ? 'Horas con descansos aplicados (-30 min/día)' : 'Horas totales trabajadas antes de descansos';
-  const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
-  const totalHours = weeklyData.reduce((acc, week) => acc + (dataType === 'bruto' ? week.totalDuration : week.totalDurationWithBreaks), 0);
+    const config = useMemo(() => ({
+        bruto: {
+            title: 'Total Bruto',
+            subTitle: 'Horas totales trabajadas antes de descansos',
+            getTotal: (data: WeekData[]) => data.reduce((acc, week) => acc + week.totalDuration, 0),
+            getWeekValue: (week: WeekData) => week.totalDuration,
+        },
+        real: {
+            title: 'Total Real',
+            subTitle: 'Horas con descansos aplicados (-30 min/día)',
+            getTotal: (data: WeekData[]) => data.reduce((acc, week) => acc + week.totalDurationWithBreaks, 0),
+            getWeekValue: (week: WeekData) => week.totalDurationWithBreaks,
+        },
+        nocturnal: {
+            title: 'Total Nocturnas',
+            subTitle: 'Horas trabajadas entre las 22:00 y las 06:00',
+            getTotal: (data: WeekData[]) => data.reduce((acc, week) => acc + week.nightDuration, 0),
+            getWeekValue: (week: WeekData) => week.nightDuration,
+        },
+        holiday: {
+            title: 'Total Festivas',
+            subTitle: 'Horas trabajadas en domingos o festivos',
+            getTotal: (data: WeekData[]) => data.reduce((acc, week) => acc + week.holidayDuration, 0),
+            getWeekValue: (week: WeekData) => week.holidayDuration,
+        }
+    }), []);
+    
+    const { title, subTitle, getTotal, getWeekValue } = config[dataType];
+    const totalHours = getTotal(weeklyData);
+    const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
 
   return (
     <>
@@ -78,7 +104,7 @@ const WeeklyBreakdownPage: React.FC<WeeklyBreakdownPageProps> = ({ weeklyData, d
                         </p>
                     </div>
                     <div className="font-bold text-xl sm:text-2xl text-slate-100">
-                        {formatHoursMinutes(dataType === 'bruto' ? week.totalDuration : week.totalDurationWithBreaks)}
+                        {formatHoursMinutes(getWeekValue(week))}
                     </div>
                 </div>
             )) : (
@@ -103,7 +129,7 @@ const App: React.FC = () => {
   const [modalMode, setModalMode] = useState<'start' | 'end' | 'edit' | null>(null);
 
   const [view, setView] = useState<'home' | 'history' | 'weeklyBreakdown'>('home');
-  const [breakdownType, setBreakdownType] = useState<'bruto' | 'real' | null>(null);
+  const [breakdownType, setBreakdownType] = useState<'bruto' | 'real' | 'nocturnal' | 'holiday' | null>(null);
   const [breakdownData, setBreakdownData] = useState<WeekData[] | null>(null);
 
 
@@ -380,6 +406,18 @@ const App: React.FC = () => {
     setView('weeklyBreakdown');
   };
 
+  const handleGoToNocturnalBreakdown = (data: WeekData[]) => {
+    setBreakdownData(data);
+    setBreakdownType('nocturnal');
+    setView('weeklyBreakdown');
+  };
+
+  const handleGoToHolidayBreakdown = (data: WeekData[]) => {
+    setBreakdownData(data);
+    setBreakdownType('holiday');
+    setView('weeklyBreakdown');
+  };
+
   return (
     <div 
       className="min-h-screen text-slate-100 relative overflow-x-hidden"
@@ -423,6 +461,8 @@ const App: React.FC = () => {
             onDelete={handleDeleteSession}
             onGoToBrutoBreakdown={handleGoToBrutoBreakdown}
             onGoToRealBreakdown={handleGoToRealBreakdown}
+            onGoToNocturnalBreakdown={handleGoToNocturnalBreakdown}
+            onGoToHolidayBreakdown={handleGoToHolidayBreakdown}
         />
       </div>
 
