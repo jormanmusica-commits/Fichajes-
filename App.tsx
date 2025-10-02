@@ -2,13 +2,96 @@ import React, { useState, useEffect } from 'react';
 import { WorkSession } from './types';
 import Header from './components/Header';
 import CurrentStatus from './components/CurrentStatus';
-import HistoryPage from './components/HistoryPage';
+import HistoryPage, { WeekData } from './components/HistoryPage';
 import SessionModal from './components/SessionModal';
 
 type ActiveSession = {
     id: number;
     startTime: Date;
 }
+
+// --- WeeklyBreakdownPage Component (defined in App.tsx to avoid creating new files) ---
+
+/**
+ * Formats milliseconds into a "XH YMin" string.
+ */
+const formatHoursMinutes = (ms: number): string => {
+    if (ms < 0) ms = 0;
+    const totalMinutes = Math.floor(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours === 0 && minutes === 0) return "0 Min";
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}H`);
+    if (minutes > 0) parts.push(`${minutes}Min`);
+    return parts.join(' ');
+};
+
+const ArrowLeftIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+);
+
+interface WeeklyBreakdownPageProps {
+  weeklyData: WeekData[];
+  dataType: 'bruto' | 'real';
+  onBack: () => void;
+}
+
+const WeeklyBreakdownPage: React.FC<WeeklyBreakdownPageProps> = ({ weeklyData, dataType, onBack }) => {
+  const title = dataType === 'bruto' ? 'Total Bruto' : 'Total Real';
+  const subTitle = dataType === 'real' ? 'Horas con descansos aplicados (-30 min/día)' : 'Horas totales trabajadas antes de descansos';
+  const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
+  const totalHours = weeklyData.reduce((acc, week) => acc + (dataType === 'bruto' ? week.totalDuration : week.totalDurationWithBreaks), 0);
+
+  return (
+    <>
+      <header>
+        <div className="container mx-auto max-w-4xl flex items-center py-8 px-4 sm:px-6 lg:px-8">
+            <button 
+              onClick={onBack} 
+              className="p-2 -ml-2 mr-2 sm:mr-4 rounded-full hover:bg-white/10 transition-colors"
+              aria-label="Volver al historial"
+            >
+                <ArrowLeftIcon />
+            </button>
+            <div>
+                <h3 className="text-xl sm:text-2xl font-semibold text-white">Desglose Semanal</h3>
+                <p className="text-slate-400 text-sm sm:text-base">{title}</p>
+            </div>
+        </div>
+      </header>
+      <main className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pb-8">
+        <div className="text-center mb-8 bg-black/30 backdrop-blur-md border border-slate-700/50 rounded-xl p-4">
+            <p className="text-3xl font-bold text-purple-300">{formatHoursMinutes(totalHours)}</p>
+            <p className="text-slate-300 text-sm mt-1">{subTitle}</p>
+        </div>
+        
+        <div className="space-y-4">
+            {weeklyData.length > 0 ? weeklyData.map(week => (
+                <div key={week.id} className="bg-black/20 backdrop-blur-sm border border-slate-800 rounded-xl p-4 flex justify-between items-center">
+                    <div className="font-medium text-slate-300">
+                        <p className="text-xs text-slate-400">Semana del</p>
+                        <p className="text-md sm:text-lg capitalize">
+                            {`${week.startDate.toLocaleDateString('es-ES', dateOptions)}`}
+                        </p>
+                    </div>
+                    <div className="font-bold text-xl sm:text-2xl text-slate-100">
+                        {formatHoursMinutes(dataType === 'bruto' ? week.totalDuration : week.totalDurationWithBreaks)}
+                    </div>
+                </div>
+            )) : (
+                <div className="text-center py-10 text-slate-400">No hay datos semanales para mostrar.</div>
+            )}
+        </div>
+      </main>
+    </>
+  );
+};
+
+
+// --- App Component ---
 
 const App: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -19,7 +102,10 @@ const App: React.FC = () => {
   const [editingSession, setEditingSession] = useState<WorkSession | null>(null);
   const [modalMode, setModalMode] = useState<'start' | 'end' | 'edit' | null>(null);
 
-  const [view, setView] = useState<'home' | 'history'>('home');
+  const [view, setView] = useState<'home' | 'history' | 'weeklyBreakdown'>('home');
+  const [breakdownType, setBreakdownType] = useState<'bruto' | 'real' | null>(null);
+  const [breakdownData, setBreakdownData] = useState<WeekData[] | null>(null);
+
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
@@ -265,8 +351,12 @@ const App: React.FC = () => {
     // Ensure it's a horizontal swipe, not a vertical scroll
     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > minSwipeDist) {
         // Swipe Right -> Go Back
-        if (diffX > 0 && view === 'history') {
-            setView('home');
+        if (diffX > 0) {
+            if (view === 'history') {
+                setView('home');
+            } else if (view === 'weeklyBreakdown') {
+                setView('history');
+            }
         }
         // Swipe Left -> Go Forward
         else if (diffX < 0 && view === 'home') {
@@ -277,6 +367,18 @@ const App: React.FC = () => {
     setTouchStartX(null);
     setTouchStartY(null);
   };
+  
+  const handleGoToBrutoBreakdown = (data: WeekData[]) => {
+    setBreakdownData(data);
+    setBreakdownType('bruto');
+    setView('weeklyBreakdown');
+  };
+
+  const handleGoToRealBreakdown = (data: WeekData[]) => {
+    setBreakdownData(data);
+    setBreakdownType('real');
+    setView('weeklyBreakdown');
+  };
 
   return (
     <div 
@@ -285,7 +387,7 @@ const App: React.FC = () => {
       onTouchEnd={handleTouchEnd}
     >
       {/* --- Home View --- */}
-      <div aria-hidden={view === 'history'}>
+      <div aria-hidden={view !== 'home'}>
           <Header />
           <main className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
               <CurrentStatus
@@ -312,14 +414,38 @@ const App: React.FC = () => {
           paddingRight: 'env(safe-area-inset-right)',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
-        aria-hidden={view === 'home'}
+        aria-hidden={view !== 'history'}
       >
         <HistoryPage 
             sessions={workSessions}
             onBack={() => setView('home')}
             onEdit={openEditModal}
             onDelete={handleDeleteSession}
+            onGoToBrutoBreakdown={handleGoToBrutoBreakdown}
+            onGoToRealBreakdown={handleGoToRealBreakdown}
         />
+      </div>
+
+      {/* --- Weekly Breakdown View (Sliding Panel) --- */}
+      <div
+        className={`fixed inset-0 transition-transform duration-500 ease-in-out z-20 overflow-y-auto ${view === 'weeklyBreakdown' ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ 
+          backgroundImage: 'linear-gradient(to bottom right, #1e3a8a, #0f172a, #000000)',
+          // Replicate body padding for safe areas on iOS
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+        aria-hidden={view !== 'weeklyBreakdown'}
+      >
+        {breakdownData && breakdownType && (
+            <WeeklyBreakdownPage 
+                weeklyData={breakdownData}
+                dataType={breakdownType}
+                onBack={() => setView('history')}
+            />
+        )}
       </div>
       
       {/* --- Modal (Stays on top) --- */}

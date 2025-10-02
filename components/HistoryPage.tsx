@@ -125,7 +125,7 @@ const formatHoursMinutes = (ms: number): string => {
 };
 
 
-interface WeekData {
+export interface WeekData {
   id: string;
   startDate: Date;
   endDate: Date;
@@ -147,6 +147,12 @@ const ChevronDownIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
+const ChevronRightIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+    </svg>
+);
+
 interface StatCardProps {
     title: string;
     subTitle?: string;
@@ -156,9 +162,10 @@ interface StatCardProps {
     onClick?: () => void;
     isExpandable?: boolean;
     isDetailsVisible?: boolean;
+    isNavigable?: boolean;
 }
 
-const StatCard: React.FC<StatCardProps> = ({title, subTitle, value, icon, children, onClick, isExpandable, isDetailsVisible}) => (
+const StatCard: React.FC<StatCardProps> = ({title, subTitle, value, icon, children, onClick, isExpandable, isDetailsVisible, isNavigable}) => (
     <div 
         className={`flex flex-col p-3 bg-black/20 rounded-lg transition-colors ${onClick ? 'cursor-pointer hover:bg-black/40' : ''}`}
         onClick={onClick}
@@ -169,8 +176,11 @@ const StatCard: React.FC<StatCardProps> = ({title, subTitle, value, icon, childr
             <div className="flex items-center gap-2">
                 {icon}
                 <span className="text-sm font-medium text-slate-400">{title}</span>
-                {isExpandable && (
+                 {isExpandable && (
                     <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isDetailsVisible ? 'rotate-180' : ''}`} />
+                )}
+                {isNavigable && (
+                    <ChevronRightIcon className="w-4 h-4 text-slate-500" />
                 )}
             </div>
             {subTitle && <span className="text-xs text-slate-500">{subTitle}</span>}
@@ -200,36 +210,6 @@ const DateList: React.FC<{ dates: Date[] }> = ({ dates }) => {
     );
 };
 
-const WeeklyBreakdownList: React.FC<{
-    weeks: WeekData[];
-    dataType: 'bruto' | 'real';
-}> = ({ weeks, dataType }) => {
-    const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-
-    if (weeks.length === 0) {
-        return (
-            <div className="w-full mt-3 pt-3 border-t border-slate-700/50 text-center text-slate-500 text-sm">
-                No hay datos para mostrar.
-            </div>
-        );
-    }
-
-    return (
-        <div className="w-full mt-3 pt-3 border-t border-slate-700/50 space-y-2 text-sm">
-            {weeks.map(week => (
-                <div key={week.id} className="flex justify-between items-center px-2">
-                    <span className="text-slate-400">
-                        {`${week.startDate.toLocaleDateString('es-ES', dateOptions)} - ${week.endDate.toLocaleDateString('es-ES', dateOptions)}`}
-                    </span>
-                    <span className="font-semibold text-slate-200">
-                        {formatHoursMinutes(dataType === 'bruto' ? week.totalDuration : week.totalDurationWithBreaks)}
-                    </span>
-                </div>
-            ))}
-        </div>
-    );
-};
-
 
 // --- GLOBAL SUMMARY COMPONENT ---
 interface GlobalSummaryCardProps {
@@ -242,10 +222,12 @@ interface GlobalSummaryCardProps {
         holidayDates: Date[];
     };
     weeklyData: WeekData[];
+    onGoToBrutoBreakdown: () => void;
+    onGoToRealBreakdown: () => void;
 }
 
-const GlobalSummaryCard: React.FC<GlobalSummaryCardProps> = ({ summary, weeklyData }) => {
-    const [detailsVisible, setDetailsVisible] = useState<'none' | 'nocturnal' | 'holiday' | 'bruto' | 'real'>('none');
+const GlobalSummaryCard: React.FC<GlobalSummaryCardProps> = ({ summary, weeklyData, onGoToBrutoBreakdown, onGoToRealBreakdown }) => {
+    const [detailsVisible, setDetailsVisible] = useState<'none' | 'nocturnal' | 'holiday'>('none');
     const hasNocturnalHours = summary.nocturnalDates.length > 0;
     const hasHolidayHours = summary.holidayDates.length > 0;
 
@@ -257,24 +239,18 @@ const GlobalSummaryCard: React.FC<GlobalSummaryCardProps> = ({ summary, weeklyDa
                     title="TOTAL BRUTO" 
                     value={formatHoursMinutes(summary.totalDuration)} 
                     icon={<span className="text-purple-400 text-lg font-bold">Σ</span>}
-                    isExpandable={weeklyData.length > 0}
-                    isDetailsVisible={detailsVisible === 'bruto'}
-                    onClick={weeklyData.length > 0 ? () => setDetailsVisible(prev => prev === 'bruto' ? 'none' : 'bruto') : undefined}
-                >
-                    <WeeklyBreakdownList weeks={weeklyData} dataType="bruto" />
-                </StatCard>
+                    isNavigable={weeklyData.length > 0}
+                    onClick={weeklyData.length > 0 ? onGoToBrutoBreakdown : undefined}
+                />
                 
                 <StatCard 
                     title="TOTAL REAL"
                     subTitle="(-30 min/día)"
                     value={formatHoursMinutes(summary.totalDurationWithBreaks)} 
                     icon={<span className="text-green-400 text-lg font-bold">✓</span>}
-                    isExpandable={weeklyData.length > 0}
-                    isDetailsVisible={detailsVisible === 'real'}
-                    onClick={weeklyData.length > 0 ? () => setDetailsVisible(prev => prev === 'real' ? 'none' : 'real') : undefined}
-                >
-                     <WeeklyBreakdownList weeks={weeklyData} dataType="real" />
-                </StatCard>
+                    isNavigable={weeklyData.length > 0}
+                    onClick={weeklyData.length > 0 ? onGoToRealBreakdown : undefined}
+                />
 
                 <StatCard 
                     title="NOCTURNAS" 
@@ -359,9 +335,11 @@ interface HistoryPageProps {
   onBack: () => void;
   onEdit: (session: WorkSession) => void;
   onDelete: (sessionId: number) => void;
+  onGoToBrutoBreakdown: (weeklyData: WeekData[]) => void;
+  onGoToRealBreakdown: (weeklyData: WeekData[]) => void;
 }
 
-const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onDelete }) => {
+const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onDelete, onGoToBrutoBreakdown, onGoToRealBreakdown }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const [expandedWeeks, setExpandedWeeks] = useState<Set<string> | null>(() => {
@@ -550,7 +528,14 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessions, onBack, onEdit, onD
             </header>
 
             <main className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-                {sessions.length > 0 && <GlobalSummaryCard summary={globalSummary} weeklyData={weeklyData} />}
+                {sessions.length > 0 && 
+                    <GlobalSummaryCard 
+                        summary={globalSummary} 
+                        weeklyData={weeklyData} 
+                        onGoToBrutoBreakdown={() => onGoToBrutoBreakdown(weeklyData)}
+                        onGoToRealBreakdown={() => onGoToRealBreakdown(weeklyData)}
+                    />
+                }
                 
                 <form
                     onSubmit={(e) => e.preventDefault()}
