@@ -1,5 +1,5 @@
 {
-  "name": "Control de Horario",
+  "name": "Horario",
   "description": "Una aplicación elegante y sencilla para registrar tus horas de trabajo. Registra tu entrada y salida, y visualiza tu historial de trabajo con facilidad.",
   "requestFramePermissions": []
 }
